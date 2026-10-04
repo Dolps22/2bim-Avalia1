@@ -22,6 +22,6 @@ Framework preset: `None`. Build command: vazio. Build output directory: `public`
 
 ## Identificação (preencha após o fork)
 
-Nome: 
-RA: 
+Nome: Davi de Oliveira Lopes
+RA: 2026109393
 URL: https://
