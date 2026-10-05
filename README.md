@@ -24,4 +24,4 @@ Framework preset: `None`. Build command: vazio. Build output directory: `public`
 
 Nome: Davi de Oliveira Lopes
 RA: 2026109393
-URL: https://
+URL: https://2bim-avalia1-10w.pages.dev

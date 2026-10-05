@@ -1,46 +1,51 @@
-// script.js
-// Versao inicial: todo o trabalho acontece no navegador.
-// A tarefa consiste em levar gerarDesenho para o servidor (Pages Functions)
-// e fazer esta pagina apenas enviar o numero e exibir a resposta.
+const CLIENT_ID = "1090469597418-voft8usqnsbi349e37skvrsemmig7jto.apps.googleusercontent.com";
+let idToken = null;
 
-import { gerarDesenho, numeroValido } from "./desenho.js";
+window.onload = () => {
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: (r) => { idToken = r.credential; }
+  });
+  google.accounts.id.renderButton(
+    document.getElementById("botao-google"),
+    { theme: "outline", size: "large" }
+  );
+};
 
-const formulario = document.getElementById("formulario");
-const campoNumero = document.getElementById("numero");
-const campoEmail = document.getElementById("email");
-const area = document.getElementById("desenho");
-const mensagem = document.getElementById("mensagem");
-const botaoBaixar = document.getElementById("baixar");
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const erro = document.getElementById("erro");
+  const resultado = document.getElementById("resultado");
+  erro.textContent = "";
+  resultado.innerHTML = "";
 
-let svgAtual = "";
+  const numero = Number(document.getElementById("numero").value);
 
-formulario.addEventListener("submit", (evento) => {
-  evento.preventDefault();
-  mensagem.textContent = "";
+  try {
+    const resp = await fetch("/api/desenho", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + (idToken || "")
+      },
+      body: JSON.stringify({ numero })
+    });
 
-  const numero = Number(campoNumero.value);
-  const email = campoEmail.value.trim();
+    if (resp.status === 400) {
+      erro.textContent = "Erro 400: número inválido (use um inteiro de 1 a 100).";
+      return;
+    }
+    if (resp.status === 401) {
+      erro.textContent = "Erro 401: faça login com o Google.";
+      return;
+    }
+    if (!resp.ok) {
+      erro.textContent = "Erro " + resp.status + " ao gerar o desenho.";
+      return;
+    }
 
-  if (!numeroValido(numero)) {
-    mensagem.textContent = "Digite um inteiro entre 1 e 100.";
-    return;
+    resultado.innerHTML = await resp.text();
+  } catch {
+    erro.textContent = "Falha de rede ao chamar /api/desenho.";
   }
-  if (email === "") {
-    mensagem.textContent = "Informe um e-mail.";
-    return;
-  }
-
-  svgAtual = gerarDesenho(numero, email);
-  area.innerHTML = svgAtual;
-  botaoBaixar.hidden = false;
-});
-
-botaoBaixar.addEventListener("click", () => {
-  const arquivo = new Blob([svgAtual], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(arquivo);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "exemplo.svg";
-  link.click();
-  URL.revokeObjectURL(url);
 });
