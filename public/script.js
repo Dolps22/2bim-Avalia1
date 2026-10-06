@@ -44,7 +44,14 @@ document.getElementById("form").addEventListener("submit", async (e) => {
       return;
     }
 
-    resultado.innerHTML = await resp.text();
+    const svg = await resp.text();
+resultado.innerHTML = svg;
+const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+const a = document.createElement("a");
+a.href = url;
+a.download = "exemplo.svg";
+a.textContent = "Baixar SVG";
+resultado.appendChild(a);
   } catch {
     erro.textContent = "Falha de rede ao chamar /api/desenho.";
   }
